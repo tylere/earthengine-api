@@ -72,7 +72,23 @@ class _AlgorithmsContainer(dict):
   def __delattr__(self, name):
     del self[name]
 
-    
+
+def in_colab_shell():
+    """Test if the code is being executed within Google Colab."""
+    try:
+        import google.colab
+        return isinstance(get_ipython(), google.colab._shell.Shell)
+    except:
+        return False
+
+def in_jupyter_shell():
+    """Test if the code is being executed within Jupyter."""
+    try:
+        import ipykernel.zmqshell
+        return isinstance(get_ipython(), ipykernel.zmqshell.ZMQInteractiveShell)
+    except:
+        return False
+
 def Authenticate(
     authorization_code=None):
     """Prompts the user to authorize access to Earth Engine via OAuth2.
@@ -80,40 +96,58 @@ def Authenticate(
     Args:
       authorization_code: An optional authorization code.
     """
-    print('DEBUG starting Authenticate')
+    print('DEBUG starting Authenticate v4')
+
     def obtain_and_write_token(auth_code):
       token = request_token(auth_code)
       write_token(token)
       print('\nSuccessfully saved authorization token.')
     
+    def display_auth_instructions_with_print(auth_url):
+      webbrowser.open_new(auth_url)
+      print('To authorize access needed by Earth Engine, open the following '
+            'URL in a web browser and follow the instructions. If the web '
+            'browser does not start automatically, please manually browse the '
+            'URL below.\n'
+            '\n'
+            '    {0}\n'
+            '\n'
+            'The authorization workflow will generate a code, which you '
+            'should paste in the box below. '.format(auth_url)
+           )
+  
+  
+    def display_auth_instructions_with_html(auth_url):
+      from IPython.display import HTML
+      display(HTML(
+        """<p>To authorize access needed by Earth Engine, open the following 
+          URL in a web browser and follow the instructions:</p>
+        <p><a href={0}>{0}</a></p>
+        <p>The authorization workflow will generate a code, which you 
+          should paste in the box below</p>
+        """.format(auth_url)))
+
+
     if authorization_code:
       obtain_and_write_token(authorization_code)
       return
     
     auth_url = get_authorization_url()
-    try:
-      from IPython.display import HTML
-      display(HTML(
-        """<p>To authorize access to your Earth Engine account,
-        go to the following link in your browser and generate a 
-        verification code:</p>
-        <p><a href={0}>{0}</a></p>
-        <p>Paste the generated code below to authorize access to your
-        Earth Engine account.</p>
-        """.format(auth_url)))
-    except NameError:
-      webbrowser.open_new(auth_url)
-      print('Go to the following link in your browser:\n'
-            '\n'
-            '    {0}\n'
-            '\n'
-            'Please authorize access to your Earth Engine account, and paste '
-            'the generated code below. If the web browser does not start, '
-            'please manually browse the URL above.\n'.format(auth_url)
-           )
-    except:
-      print("Unexpected error:", sys.exc_info()[0])
-      raise
+
+    if in_colab_shell():
+      display_auth_instructions_with_print(auth_url)
+    elif in_jupyter_shell():
+      display_auth_instructions_with_html(auth_url)
+    else:
+      display_auth_instructions_with_print(auth_url)
+    
+    # try:
+    #   display_auth_instructions_with_html(auth_url)
+    # except NameError:
+    #   display_auth_instructions_with_print(auth_url)
+    # except:
+    #   print("Unexpected error:", sys.exc_info()[0])
+    #   raise
       
     auth_code = input('Enter verification code: '.strip())
     obtain_and_write_token(auth_code)
