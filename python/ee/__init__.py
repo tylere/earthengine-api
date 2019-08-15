@@ -8,6 +8,7 @@ __version__ = '0.1.189'
 # pylint: disable=g-bad-name
 
 # pylint: disable=g-bad-import-order
+import builtins
 import collections
 import datetime
 import inspect
@@ -72,8 +73,9 @@ class _AlgorithmsContainer(dict):
   def __delattr__(self, name):
     del self[name]
 
+
 def in_colab_shell():
-    """Test if the code is being executed within Google Colab."""
+    """Tests if the code is being executed within Google Colab."""
     try:
         import google.colab
         return isinstance(get_ipython(), google.colab._shell.Shell)
@@ -81,7 +83,7 @@ def in_colab_shell():
         return False
 
 def in_jupyter_shell():
-    """Test if the code is being executed within Jupyter."""
+    """Tests if the code is being executed within Jupyter."""
     try:
         import ipykernel.zmqshell
         return isinstance(get_ipython(), ipykernel.zmqshell.ZMQInteractiveShell)
@@ -89,11 +91,13 @@ def in_jupyter_shell():
         return False
 
 def obtain_and_write_token(auth_code):
+  """Obtains and writes a credentials token based on a authorization code."""
   token = request_token(auth_code)
   write_token(token)
   print('\nSuccessfully saved authorization token.')
 
 def display_auth_instructions_with_print(auth_url):
+  """Displays instructions for authenticating using a print statement."""
   print('To authorize access needed by Earth Engine, open the following '
         'URL in a web browser and follow the instructions. If the web '
         'browser does not start automatically, please manually browse the '
@@ -106,6 +110,7 @@ def display_auth_instructions_with_print(auth_url):
         )
 
 def display_auth_instructions_with_html(auth_url):
+  """Displays instructions for authenticating using HTML code."""
   from IPython.display import HTML
   display(HTML(
     """<p>To authorize access needed by Earth Engine, open the following 
@@ -115,15 +120,13 @@ def display_auth_instructions_with_html(auth_url):
       should paste in the box below</p>
     """.format(auth_url)))
 
-
-def Authenticate(
-    authorization_code=None):
+def Authenticate(authorization_code=None):
     """Prompts the user to authorize access to Earth Engine via OAuth2.
     
     Args:
       authorization_code: An optional authorization code.
     """
-    print('DEBUG starting Authenticate v5')
+    print('DEBUG starting Authenticate v6')
 
     if authorization_code:
       obtain_and_write_token(authorization_code)
@@ -139,7 +142,7 @@ def Authenticate(
       webbrowser.open_new(auth_url)
       display_auth_instructions_with_print(auth_url)
       
-    auth_code = input('Enter verification code: '.strip())
+    auth_code = builtins.input('Enter verification code: ').strip()
     obtain_and_write_token(auth_code)
     
 
