@@ -14,6 +14,7 @@ import inspect
 import numbers
 import os
 import six
+import webbrowser
 
 from . import batch
 from . import data
@@ -45,6 +46,9 @@ from .function import Function
 from .geometry import Geometry
 from .image import Image
 from .imagecollection import ImageCollection
+from .oauth import request_token
+from .oauth import write_token
+from .oauth import get_authorization_url
 from .serializer import Serializer
 from .terrain import Terrain
 
@@ -67,6 +71,53 @@ class _AlgorithmsContainer(dict):
 
   def __delattr__(self, name):
     del self[name]
+
+    
+def Authenticate(
+    authorization_code=None):
+    """Prompts the user to authorize access to Earth Engine via OAuth2.
+    
+    Args:
+      authorization_code: An optional authorization code.
+    """
+    print('DEBUG starting Authenticate')
+    def obtain_and_write_token(auth_code):
+      token = request_token(auth_code)
+      write_token(token)
+      print('\nSuccessfully saved authorization token.')
+    
+    if authorization_code:
+      obtain_and_write_token(authorization_code)
+      return
+    
+    auth_url = get_authorization_url()
+    try:
+      from IPython.display import HTML
+      display(HTML(
+        """<p>To authorize access to your Earth Engine account,
+        go to the following link in your browser and generate a 
+        verification code:</p>
+        <p><a href={0}>{0}</a></p>
+        <p>Paste the generated code below to authorize access to your
+        Earth Engine account.</p>
+        """.format(auth_url)))
+    except NameError:
+      webbrowser.open_new(auth_url)
+      print('Go to the following link in your browser:\n'
+            '\n'
+            '    {0}\n'
+            '\n'
+            'Please authorize access to your Earth Engine account, and paste '
+            'the generated code below. If the web browser does not start, '
+            'please manually browse the URL above.\n'.format(auth_url)
+           )
+    except:
+      print("Unexpected error:", sys.exc_info()[0])
+      raise
+      
+    auth_code = input('Enter verification code: '.strip())
+    obtain_and_write_token(auth_code)
+    
 
 # A dictionary of algorithms that are not bound to a specific class.
 Algorithms = _AlgorithmsContainer()
