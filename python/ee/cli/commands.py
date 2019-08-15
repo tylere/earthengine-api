@@ -308,7 +308,7 @@ class Dispatcher(object):
 
 class AuthenticateCommand(object):
   """Prompts the user to authorize access to Earth Engine via OAuth2."""
-
+  
   name = 'authenticate'
 
   def __init__(self, parser):
@@ -322,6 +322,8 @@ class AuthenticateCommand(object):
 
   def run(self, args, unused_config):
     """Prompts for an auth code, requests a token and saves it."""
+
+    print('DEBUG AuthenticateCommand.run v5')
 
     def write_token(auth_code):
       token = ee.oauth.request_token(auth_code)
@@ -348,15 +350,7 @@ class AuthenticateCommand(object):
             % auth_url)
     else:
       webbrowser.open_new(auth_url)
-      print('Opening the following address in a web browser:\n'
-            '\n'
-            '    %s\n'
-            '\n'
-            'Please authorize access to your Earth Engine account, and paste '
-            'the generated code below. If the web browser does not start, '
-            'please manually browse the URL above.\n'
-            % auth_url)
-
+      ee.display_auth_instructions_with_print(auth_url)
       auth_code = input('Please enter authorization code: ').strip()
       write_token(auth_code)
 
