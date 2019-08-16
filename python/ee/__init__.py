@@ -8,7 +8,7 @@ __version__ = '0.1.189'
 # pylint: disable=g-bad-name
 
 # pylint: disable=g-bad-import-order
-import builtins
+from builtins import input
 import collections
 import datetime
 import inspect
@@ -126,7 +126,7 @@ def Authenticate(authorization_code=None):
     Args:
       authorization_code: An optional authorization code.
     """
-    print('DEBUG starting Authenticate v6')
+    print('DEBUG starting Authenticate v7')
 
     if authorization_code:
       obtain_and_write_token(authorization_code)
@@ -142,8 +142,9 @@ def Authenticate(authorization_code=None):
       webbrowser.open_new(auth_url)
       display_auth_instructions_with_print(auth_url)
       
-    auth_code = builtins.input('Enter verification code: ').strip()
-    obtain_and_write_token(auth_code)
+    auth_code = input('Enter verification code: ')
+    assert isinstance(auth_code, str)
+    obtain_and_write_token(auth_code.strip())
     
 
 # A dictionary of algorithms that are not bound to a specific class.

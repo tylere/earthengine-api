@@ -323,7 +323,7 @@ class AuthenticateCommand(object):
   def run(self, args, unused_config):
     """Prompts for an auth code, requests a token and saves it."""
 
-    print('DEBUG AuthenticateCommand.run v6')
+    print('DEBUG AuthenticateCommand.run v7')
 
     def write_token(auth_code):
       token = ee.oauth.request_token(auth_code)
