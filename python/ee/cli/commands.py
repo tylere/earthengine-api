@@ -323,36 +323,9 @@ class AuthenticateCommand(object):
   def run(self, args, unused_config):
     """Prompts for an auth code, requests a token and saves it."""
 
-    print('DEBUG AuthenticateCommand.run v7')
-
-    def write_token(auth_code):
-      token = ee.oauth.request_token(auth_code)
-      ee.oauth.write_token(token)
-      print('\nSuccessfully saved authorization token.')
-
-    if args.authorization_code:
-      auth_code = args.authorization_code
-      write_token(auth_code)
-      return
-
-    auth_url = ee.oauth.get_authorization_url()
-    if args.quiet:
-      print('Paste the following address into a web browser:\n'
-            '\n'
-            '    %s\n'
-            '\n'
-            'On the web page, please authorize access to your '
-            'Earth Engine account and copy the authentication code. '
-            'Next authenticate with the following command:\n'
-            '\n'
-            '    earthengine authenticate '
-            '--authorization-code=PLACE_AUTH_CODE_HERE\n'
-            % auth_url)
-    else:
-      webbrowser.open_new(auth_url)
-      ee.display_auth_instructions_with_print(auth_url)
-      auth_code = input('Please enter authorization code: ').strip()
-      write_token(auth_code)
+    # Filter for arguments relevant for ee.Authenticate()
+    args_auth = { x: vars(args)[x] for x in ('authorization_code', 'quiet') }
+    ee.Authenticate(**args_auth)
 
 
 class SetProjectCommand(object):

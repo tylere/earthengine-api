@@ -8,7 +8,7 @@ __version__ = '0.1.191'
 # pylint: disable=g-bad-name
 
 # pylint: disable=g-bad-import-order
-from builtins import input
+import builtins
 import collections
 import datetime
 import inspect
@@ -16,6 +16,21 @@ import numbers
 import os
 import six
 import webbrowser
+
+# Optional imports used for specific shells.
+# pylint: disable=g-import-not-at-top
+try:
+  import google.colab
+except ImportError:
+  pass
+try:
+  import ipykernel.zmqshell
+except ImportError:
+  pass
+try:
+  import IPython
+except ImportError:
+  pass
 
 from . import batch
 from . import data
@@ -77,24 +92,28 @@ class _AlgorithmsContainer(dict):
 def in_colab_shell():
     """Tests if the code is being executed within Google Colab."""
     try:
-        import google.colab
-        return isinstance(get_ipython(), google.colab._shell.Shell)
-    except:
+        #import google.colab
+        return isinstance(IPython.get_ipython(), google.colab._shell.Shell)
+    except NameError:
         return False
 
 def in_jupyter_shell():
     """Tests if the code is being executed within Jupyter."""
     try:
-        import ipykernel.zmqshell
-        return isinstance(get_ipython(), ipykernel.zmqshell.ZMQInteractiveShell)
-    except:
+        #import ipykernel.zmqshell
+        return isinstance(IPython.get_ipython(), ipykernel.zmqshell.ZMQInteractiveShell)
+    except NameError:
         return False
 
-def obtain_and_write_token(auth_code):
-  """Obtains and writes a credentials token based on a authorization code."""
+def obtain_and_write_token(auth_code=None):
+  """Obtains and writes credentials token based on a authorization code."""
+  if not auth_code:
+    auth_code = builtins.input('Enter verification code: ')
+    assert isinstance(auth_code, str)
   token = request_token(auth_code)
   write_token(token)
-  print('\nSuccessfully saved authorization token.')
+  print('\nSuccessfully saved authorization token.')  # pylint: disable=superfluous-parens
+
 
 def display_auth_instructions_with_print(auth_url):
   """Displays instructions for authenticating using a print statement."""
@@ -120,19 +139,33 @@ def display_auth_instructions_with_html(auth_url):
       should paste in the box below</p>
     """.format(auth_url)))
 
-def Authenticate(authorization_code=None):
+def Authenticate(authorization_code=None, quiet=None):
     """Prompts the user to authorize access to Earth Engine via OAuth2.
     
     Args:
       authorization_code: An optional authorization code.
     """
-    print('DEBUG starting Authenticate v7')
+    print('DEBUG starting Authenticate v13')
 
     if authorization_code:
       obtain_and_write_token(authorization_code)
       return
     
     auth_url = get_authorization_url()
+
+    if quiet:
+      print('Paste the following address into a web browser:\n'
+            '\n'
+            '    %s\n'
+            '\n'
+            'On the web page, please authorize access to your '
+            'Earth Engine account and copy the authentication code. '
+            'Next authenticate with the following command:\n'
+            '\n'
+            '    earthengine authenticate '
+            '--authorization-code=PLACE_AUTH_CODE_HERE\n'
+             % auth_url)
+      return
 
     if in_colab_shell():
       display_auth_instructions_with_print(auth_url)
@@ -142,10 +175,10 @@ def Authenticate(authorization_code=None):
       webbrowser.open_new(auth_url)
       display_auth_instructions_with_print(auth_url)
       
-    auth_code = input('Enter verification code: ')
+    auth_code = builtins.input('Enter verification code: ')
     assert isinstance(auth_code, str)
     obtain_and_write_token(auth_code.strip())
-    
+
 
 # A dictionary of algorithms that are not bound to a specific class.
 Algorithms = _AlgorithmsContainer()
