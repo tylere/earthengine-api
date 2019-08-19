@@ -15,6 +15,7 @@ import inspect
 import numbers
 import os
 import six
+import sys
 import webbrowser
 
 # Optional imports used for specific shells.
@@ -114,6 +115,19 @@ def obtain_and_write_token(auth_code=None):
   write_token(token)
   print('\nSuccessfully saved authorization token.')  # pylint: disable=superfluous-parens
 
+def display_auth_instructions_for_noninteractive(auth_url):
+  """Displays instructions for authenticating without blocking for user input."""
+  print('Paste the following address into a web browser:\n'
+        '\n'
+        '    %s\n'
+        '\n'
+        'On the web page, please authorize access to your '
+        'Earth Engine account and copy the authentication code. '
+        'Next authenticate with the following command:\n'
+        '\n'
+        '    earthengine authenticate '
+        '--authorization-code=PLACE_AUTH_CODE_HERE\n'
+          % auth_url)
 
 def display_auth_instructions_with_print(auth_url):
   """Displays instructions for authenticating using a print statement."""
@@ -145,36 +159,30 @@ def Authenticate(authorization_code=None, quiet=None):
     Args:
       authorization_code: An optional authorization code.
     """
-    print('DEBUG starting Authenticate v13')
+    print('DEBUG starting Authenticate v15')
 
     if authorization_code:
       obtain_and_write_token(authorization_code)
       return
     
     auth_url = get_authorization_url()
-
+    
     if quiet:
-      print('Paste the following address into a web browser:\n'
-            '\n'
-            '    %s\n'
-            '\n'
-            'On the web page, please authorize access to your '
-            'Earth Engine account and copy the authentication code. '
-            'Next authenticate with the following command:\n'
-            '\n'
-            '    earthengine authenticate '
-            '--authorization-code=PLACE_AUTH_CODE_HERE\n'
-             % auth_url)
+      display_auth_instructions_for_noninteractive(auth_url)
       return
 
     if in_colab_shell():
-      display_auth_instructions_with_print(auth_url)
+      if sys.version_info[0] == 2:  # Python 2
+        display_auth_instructions_for_noninteractive(auth_url)
+        return
+      else:  # Python 3
+        display_auth_instructions_with_print(auth_url)
     elif in_jupyter_shell():
       display_auth_instructions_with_html(auth_url)
     else:
-      webbrowser.open_new(auth_url)
       display_auth_instructions_with_print(auth_url)
-      
+    webbrowser.open_new(auth_url)
+
     auth_code = builtins.input('Enter verification code: ')
     assert isinstance(auth_code, str)
     obtain_and_write_token(auth_code.strip())
