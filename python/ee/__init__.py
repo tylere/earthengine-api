@@ -19,6 +19,7 @@ import sys
 import webbrowser
 
 # Optional imports.
+# pylint: disable=g-import-not-at-top
 try:
   import IPython
 except ImportError:
