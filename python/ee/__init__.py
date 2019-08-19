@@ -18,16 +18,7 @@ import six
 import sys
 import webbrowser
 
-# Optional imports used for specific shells.
-# pylint: disable=g-import-not-at-top
-try:
-  import google.colab
-except ImportError:
-  pass
-try:
-  import ipykernel.zmqshell
-except ImportError:
-  pass
+# Optional imports.
 try:
   import IPython
 except ImportError:
@@ -93,17 +84,22 @@ class _AlgorithmsContainer(dict):
 def in_colab_shell():
     """Tests if the code is being executed within Google Colab."""
     try:
+      import google.colab
       return isinstance(IPython.get_ipython(), google.colab._shell.Shell)
+    except ImportError:
+      return False
     except AttributeError:  # If google.colab._shell is not defined.
       return False
 
 def in_jupyter_shell():
     """Tests if the code is being executed within Jupyter."""
     try:
-        #import ipykernel.zmqshell
-        return isinstance(IPython.get_ipython(), ipykernel.zmqshell.ZMQInteractiveShell)
+      import ipykernel.zmqshell
+      return isinstance(IPython.get_ipython(), ipykernel.zmqshell.ZMQInteractiveShell)
+    except ImportError:
+      return False
     except NameError:
-        return False
+      return False
 
 def obtain_and_write_token(auth_code=None):
   """Obtains and writes credentials token based on a authorization code."""
@@ -143,14 +139,17 @@ def display_auth_instructions_with_print(auth_url):
 
 def display_auth_instructions_with_html(auth_url):
   """Displays instructions for authenticating using HTML code."""
-  from IPython.display import HTML
-  display(HTML(
-    """<p>To authorize access needed by Earth Engine, open the following 
-      URL in a web browser and follow the instructions:</p>
-    <p><a href={0}>{0}</a></p>
-    <p>The authorization workflow will generate a code, which you 
-      should paste in the box below</p>
-    """.format(auth_url)))
+  try:
+    display(IPython.display.HTML(
+      """<p>To authorize access needed by Earth Engine, open the following 
+        URL in a web browser and follow the instructions:</p>
+      <p><a href={0}>{0}</a></p>
+      <p>The authorization workflow will generate a code, which you 
+        should paste in the box below</p>
+      """.format(auth_url)))
+  except ImportError:
+    print('The IPython module must be instaslled to use HTML.')
+    raise
 
 def Authenticate(authorization_code=None, quiet=None):
     """Prompts the user to authorize access to Earth Engine via OAuth2.
@@ -158,7 +157,7 @@ def Authenticate(authorization_code=None, quiet=None):
     Args:
       authorization_code: An optional authorization code.
     """
-    print('DEBUG starting Authenticate v15')
+    print('DEBUG starting Authenticate v16')
 
     if authorization_code:
       obtain_and_write_token(authorization_code)
