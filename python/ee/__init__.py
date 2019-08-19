@@ -158,7 +158,7 @@ def Authenticate(authorization_code=None, quiet=None):
     Args:
       authorization_code: An optional authorization code.
     """
-    print('DEBUG starting Authenticate v16')
+    print('DEBUG starting Authenticate v17')
 
     if authorization_code:
       obtain_and_write_token(authorization_code)
