@@ -93,10 +93,9 @@ class _AlgorithmsContainer(dict):
 def in_colab_shell():
     """Tests if the code is being executed within Google Colab."""
     try:
-        #import google.colab
-        return isinstance(IPython.get_ipython(), google.colab._shell.Shell)
-    except NameError:
-        return False
+      return isinstance(IPython.get_ipython(), google.colab._shell.Shell)
+    except AttributeError:  # If google.colab._shell is not defined.
+      return False
 
 def in_jupyter_shell():
     """Tests if the code is being executed within Jupyter."""
